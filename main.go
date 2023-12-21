@@ -84,7 +84,8 @@ func main() {
 	//swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
+		data := map[string]string{"message": "Hello, Worldasdfasd fasdf asdfasdcfawecfdasfasfs!"}
+		return c.JSON(data)
 	})
 
 	// Metrics Page`
