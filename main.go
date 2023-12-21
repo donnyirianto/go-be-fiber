@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/donnyirianto/go-be-fiber/client/restclient"
 	"github.com/donnyirianto/go-be-fiber/configuration"
 	"github.com/donnyirianto/go-be-fiber/controller"
@@ -9,6 +11,7 @@ import (
 	repository "github.com/donnyirianto/go-be-fiber/repository/impl"
 	service "github.com/donnyirianto/go-be-fiber/service/impl"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
@@ -73,6 +76,13 @@ func main() {
 	app.Use(logger.New(logger.Config{
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
+	cache.New(cache.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return c.Query("noCache") == "true"
+		},
+		Expiration:   5 * time.Minute,
+		CacheControl: true,
+	})
 
 	//routing
 	productController.Route(app)
@@ -84,7 +94,7 @@ func main() {
 	//swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)
 	app.Get("/", func(c *fiber.Ctx) error {
-		data := map[string]string{"message": "Hello, Worldasdfasd fasdf asdfasdcfawecfdasfasfs!"}
+		data := map[string]string{"message": "hello!"}
 		return c.JSON(data)
 	})
 

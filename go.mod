@@ -19,7 +19,9 @@ require (
 	github.com/gohugoio/hugo v0.121.1 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
+	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/tdewolff/parse/v2 v2.7.7 // indirect
+	github.com/tinylib/msgp v1.1.8 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
 
