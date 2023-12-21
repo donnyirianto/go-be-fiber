@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/donnyirianto/go-be-fiber/entity"
 	"github.com/donnyirianto/go-be-fiber/exception"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -47,11 +48,11 @@ func NewDatabase(config Config) *gorm.DB {
 	sqlDB.SetConnMaxLifetime(time.Duration(rand.Int31n(int32(maxPollLifeTime))) * time.Millisecond)
 
 	//autoMigrate
-	//err = db.AutoMigrate(&entity.Product{})
-	//err = db.AutoMigrate(&entity.Transaction{})
-	//err = db.AutoMigrate(&entity.TransactionDetail{})
-	//err = db.AutoMigrate(&entity.User{})
-	//err = db.AutoMigrate(&entity.UserRole{})
-	//exception.PanicLogging(err)
+	err = db.AutoMigrate(&entity.Product{})
+	err = db.AutoMigrate(&entity.Transaction{})
+	err = db.AutoMigrate(&entity.TransactionDetail{})
+	err = db.AutoMigrate(&entity.User{})
+	err = db.AutoMigrate(&entity.UserRole{})
+	exception.PanicLogging(err)
 	return db
 }

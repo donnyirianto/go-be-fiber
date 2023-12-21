@@ -9,6 +9,7 @@ import (
 	repository "github.com/donnyirianto/go-be-fiber/repository/impl"
 	service "github.com/donnyirianto/go-be-fiber/service/impl"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
@@ -62,6 +63,9 @@ func main() {
 	app := fiber.New(configuration.NewFiberConfiguration())
 	app.Use(recover.New())
 	app.Use(cors.New())
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
 
 	//routing
 	productController.Route(app)
@@ -72,7 +76,9 @@ func main() {
 
 	//swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)
-
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Hello, World!")
+	})
 	//start app
 	err := app.Listen(config.Get("SERVER.PORT"))
 	exception.PanicLogging(err)
