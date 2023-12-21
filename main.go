@@ -11,6 +11,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 )
@@ -62,9 +65,13 @@ func main() {
 	//setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
 	app.Use(recover.New())
+	app.Use(helmet.New())
 	app.Use(cors.New())
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
+	}))
+	app.Use(logger.New(logger.Config{
+		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
 
 	//routing
@@ -79,6 +86,10 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
+
+	// Metrics Page`
+	app.Get("/metrics", monitor.New(monitor.Config{Title: "Be Matrics Page"}))
+
 	//start app
 	err := app.Listen(config.Get("SERVER.PORT"))
 	exception.PanicLogging(err)
