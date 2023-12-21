@@ -1,0 +1,29 @@
+package controller
+
+import (
+	"github.com/donnyirianto/go-be-fiber/model"
+	"github.com/donnyirianto/go-be-fiber/service"
+	"github.com/gofiber/fiber/v2"
+)
+
+type HttpBinController struct {
+	service.HttpBinService
+}
+
+func NewHttpBinController(httpBinService *service.HttpBinService) *HttpBinController {
+	return &HttpBinController{HttpBinService: *httpBinService}
+}
+
+func (controller HttpBinController) Route(app *fiber.App) {
+	app.Get("/v1/api/httpbin", controller.PostHttpBin)
+}
+
+func (controller HttpBinController) PostHttpBin(c *fiber.Ctx) error {
+
+	controller.HttpBinService.PostMethod(c.Context())
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    200,
+		Message: "Success",
+		Data:    nil,
+	})
+}
