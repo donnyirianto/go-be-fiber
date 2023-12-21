@@ -14,7 +14,7 @@ func NewLogger() *logrus.Logger {
 	logger.SetLevel(logrus.InfoLevel)
 	logger.SetFormatter(&logrus.JSONFormatter{
 		FieldMap: logrus.FieldMap{
-			logrus.FieldKeyTime: "@timestamp",
+			logrus.FieldKeyTime: "timestamp",
 			logrus.FieldKeyMsg:  "message",
 		},
 	})

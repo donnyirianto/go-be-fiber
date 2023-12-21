@@ -2,12 +2,9 @@ package configuration
 
 import (
 	"log"
-	"math/rand"
 	"os"
-	"strconv"
 	"time"
 
-	"github.com/donnyirianto/go-be-fiber/entity"
 	"github.com/donnyirianto/go-be-fiber/exception"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -15,15 +12,14 @@ import (
 )
 
 func NewDatabase(config Config) *gorm.DB {
-	username := config.Get("DATASOURCE_USERNAME")
-	password := config.Get("DATASOURCE_PASSWORD")
-	host := config.Get("DATASOURCE_HOST")
-	port := config.Get("DATASOURCE_PORT")
-	dbName := config.Get("DATASOURCE_DB_NAME")
-	maxPoolOpen, err := strconv.Atoi(config.Get("DATASOURCE_POOL_MAX_CONN"))
-	maxPoolIdle, err := strconv.Atoi(config.Get("DATASOURCE_POOL_IDLE_CONN"))
-	maxPollLifeTime, err := strconv.Atoi(config.Get("DATASOURCE_POOL_LIFE_TIME"))
-	exception.PanicLogging(err)
+	username := config.GetString("DATASOURCE_USERNAME")
+	password := config.GetString("DATASOURCE_PASSWORD")
+	host := config.GetString("DATASOURCE_HOST")
+	port := config.GetString("DATASOURCE_PORT")
+	dbName := config.GetString("DATASOURCE_DB_NAME")
+	maxPoolOpen := config.GetInt("DATASOURCE_POOL_MAX_CONN")
+	maxPoolIdle := config.GetInt("DATASOURCE_POOL_IDLE_CONN")
+	maxPollLifeTime := config.GetInt("DATASOURCE_POOL_LIFE_TIME")
 
 	loggerDb := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
@@ -35,7 +31,8 @@ func NewDatabase(config Config) *gorm.DB {
 		},
 	)
 
-	db, err := gorm.Open(mysql.Open(username+":"+password+"@tcp("+host+":"+port+")/"+dbName+"?parseTime=true"), &gorm.Config{
+	dsn := username + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbName + "?parseTime=true"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: loggerDb,
 	})
 	exception.PanicLogging(err)
@@ -45,14 +42,15 @@ func NewDatabase(config Config) *gorm.DB {
 
 	sqlDB.SetMaxOpenConns(maxPoolOpen)
 	sqlDB.SetMaxIdleConns(maxPoolIdle)
-	sqlDB.SetConnMaxLifetime(time.Duration(rand.Int31n(int32(maxPollLifeTime))) * time.Millisecond)
+	sqlDB.SetConnMaxLifetime(time.Duration(maxPollLifeTime) * time.Second)
 
-	//autoMigrate
-	err = db.AutoMigrate(&entity.Product{})
-	err = db.AutoMigrate(&entity.Transaction{})
-	err = db.AutoMigrate(&entity.TransactionDetail{})
-	err = db.AutoMigrate(&entity.User{})
-	err = db.AutoMigrate(&entity.UserRole{})
-	exception.PanicLogging(err)
+	// Uncomment and customize the auto-migrate part if needed
+	// err = db.AutoMigrate(&entity.Product{})
+	// err = db.AutoMigrate(&entity.Transaction{})
+	// err = db.AutoMigrate(&entity.TransactionDetail{})
+	// err = db.AutoMigrate(&entity.User{})
+	// err = db.AutoMigrate(&entity.UserRole{})
+	// exception.PanicLogging(err)
+
 	return db
 }

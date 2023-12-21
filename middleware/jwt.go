@@ -10,7 +10,7 @@ import (
 )
 
 func AuthenticateJWT(role string, config configuration.Config) func(*fiber.Ctx) error {
-	jwtSecret := config.Get("JWT_SECRET_KEY")
+	jwtSecret := config.GetString("JWT_SECRET_KEY")
 	return jwtware.New(jwtware.Config{
 		SigningKey: []byte(jwtSecret),
 		SuccessHandler: func(ctx *fiber.Ctx) error {

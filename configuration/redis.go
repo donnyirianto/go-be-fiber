@@ -3,19 +3,17 @@ package configuration
 import (
 	"context"
 	"encoding/json"
-	"strconv"
 
 	"github.com/donnyirianto/go-be-fiber/exception"
 	"github.com/redis/go-redis/v9"
 )
 
 func NewRedis(config Config) *redis.Client {
-	host := config.Get("REDIS_HOST")
-	port := config.Get("REDIS_PORT")
-	password := config.Get("REDIS_PASSWORD")
-	maxPoolSize, err := strconv.Atoi(config.Get("REDIS_POOL_MAX_SIZE"))
-	minIdlePoolSize, err := strconv.Atoi(config.Get("REDIS_POOL_MIN_IDLE_SIZE"))
-	exception.PanicLogging(err)
+	host := config.GetString("REDIS_HOST")
+	port := config.GetString("REDIS_PORT")
+	password := config.GetString("REDIS_PASSWORD")
+	maxPoolSize := config.GetInt("REDIS_POOL_MAX_SIZE")
+	minIdlePoolSize := config.GetInt("REDIS_POOL_MIN_IDLE_SIZE")
 
 	redisStore := redis.NewClient(&redis.Options{
 		Addr:         host + ":" + port,

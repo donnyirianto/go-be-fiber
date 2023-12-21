@@ -3,7 +3,6 @@ package main
 import (
 	"time"
 
-	"github.com/donnyirianto/go-be-fiber/client/restclient"
 	"github.com/donnyirianto/go-be-fiber/configuration"
 	"github.com/donnyirianto/go-be-fiber/controller"
 	_ "github.com/donnyirianto/go-be-fiber/docs"
@@ -48,22 +47,17 @@ func main() {
 	transactionDetailRepository := repository.NewTransactionDetailRepositoryImpl(database)
 	userRepository := repository.NewUserRepositoryImpl(database)
 
-	//rest client
-	httpBinRestClient := restclient.NewHttpBinRestClient()
-
 	//service
 	productService := service.NewProductServiceImpl(&productRepository, redis)
 	transactionService := service.NewTransactionServiceImpl(&transactionRepository)
 	transactionDetailService := service.NewTransactionDetailServiceImpl(&transactionDetailRepository)
 	userService := service.NewUserServiceImpl(&userRepository)
-	httpBinService := service.NewHttpBinServiceImpl(&httpBinRestClient)
 
 	//controller
 	productController := controller.NewProductController(&productService, config)
 	transactionController := controller.NewTransactionController(&transactionService, config)
 	transactionDetailController := controller.NewTransactionDetailController(&transactionDetailService, config)
 	userController := controller.NewUserController(&userService, config)
-	httpBinController := controller.NewHttpBinController(&httpBinService)
 
 	//setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
@@ -89,7 +83,6 @@ func main() {
 	transactionController.Route(app)
 	transactionDetailController.Route(app)
 	userController.Route(app)
-	httpBinController.Route(app)
 
 	//swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)
@@ -102,6 +95,6 @@ func main() {
 	app.Get("/metrics", monitor.New(monitor.Config{Title: "Be Matrics Page"}))
 
 	//start app
-	err := app.Listen(config.Get("SERVER.PORT"))
+	err := app.Listen(config.GetString("SERVER_PORT"))
 	exception.PanicLogging(err)
 }

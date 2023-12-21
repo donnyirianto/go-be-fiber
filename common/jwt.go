@@ -1,7 +1,6 @@
 package common
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/donnyirianto/go-be-fiber/configuration"
@@ -10,9 +9,8 @@ import (
 )
 
 func GenerateToken(username string, roles []map[string]interface{}, config configuration.Config) string {
-	jwtSecret := config.Get("JWT_SECRET_KEY")
-	jwtExpired, err := strconv.Atoi(config.Get("JWT_EXPIRE_MINUTES_COUNT"))
-	exception.PanicLogging(err)
+	jwtSecret := config.GetString("JWT_SECRET_KEY")
+	jwtExpired := config.GetInt("JWT_EXPIRE_MINUTES_COUNT")
 
 	claims := jwt.MapClaims{
 		"username": username,
