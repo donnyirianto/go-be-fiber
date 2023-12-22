@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"errors"
 	"log"
 	"os"
 	"time"
@@ -11,7 +12,17 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func NewDatabase(config Config) *gorm.DB {
+func NewDatabase(config Config) (*gorm.DB, error) {
+	// Validate required configuration parameters
+	requiredParams := []string{"DATASOURCE_USERNAME", "DATASOURCE_PASSWORD", "DATASOURCE_HOST", "DATASOURCE_PORT", "DATASOURCE_DB_NAME"}
+	for _, param := range requiredParams {
+		if config.GetString(param) == "" {
+			err := errors.New("Missing required configuration parameter: " + param)
+			exception.PanicLogging(err)
+			return nil, err
+		}
+	}
+
 	username := config.GetString("DATASOURCE_USERNAME")
 	password := config.GetString("DATASOURCE_PASSWORD")
 	host := config.GetString("DATASOURCE_HOST")
@@ -35,7 +46,8 @@ func NewDatabase(config Config) *gorm.DB {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: loggerDb,
 	})
-	exception.PanicLogging(err)
+
+	exception.PanicLogging(err) // Use your exception.PanicLogging function here
 
 	sqlDB, err := db.DB()
 	exception.PanicLogging(err)
@@ -44,13 +56,5 @@ func NewDatabase(config Config) *gorm.DB {
 	sqlDB.SetMaxIdleConns(maxPoolIdle)
 	sqlDB.SetConnMaxLifetime(time.Duration(maxPollLifeTime) * time.Second)
 
-	// Uncomment and customize the auto-migrate part if needed
-	// err = db.AutoMigrate(&entity.Product{})
-	// err = db.AutoMigrate(&entity.Transaction{})
-	// err = db.AutoMigrate(&entity.TransactionDetail{})
-	// err = db.AutoMigrate(&entity.User{})
-	// err = db.AutoMigrate(&entity.UserRole{})
-	// exception.PanicLogging(err)
-
-	return db
+	return db, nil
 }

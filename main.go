@@ -28,7 +28,7 @@ import (
 // @contact.email fiber@swagger.io
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// @host localhost:9999
+// @host localhost:7777
 // @BasePath /
 // @schemes http https
 // @securityDefinitions.apikey JWT
@@ -38,8 +38,10 @@ import (
 func main() {
 	//setup configuration
 	config := configuration.New()
-	database := configuration.NewDatabase(config)
-	redis := configuration.NewRedis(config)
+	database, err := configuration.NewDatabase(config)
+	exception.PanicLogging(err)
+	redis, err := configuration.NewRedis(config)
+	exception.PanicLogging(err)
 
 	//repository
 	productRepository := repository.NewProductRepositoryImpl(database)
@@ -61,22 +63,24 @@ func main() {
 
 	//setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
-	app.Use(recover.New())
-	app.Use(helmet.New())
-	app.Use(cors.New())
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
 	app.Use(logger.New(logger.Config{
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
-	cache.New(cache.Config{
+	app.Use(recover.New())
+	app.Use(helmet.New())
+	app.Use(cors.New())
+
+	// Use the cache middleware
+	app.Use(cache.New(cache.Config{
 		Next: func(c *fiber.Ctx) bool {
 			return c.Query("noCache") == "true"
 		},
 		Expiration:   5 * time.Minute,
 		CacheControl: true,
-	})
+	}))
 
 	//routing
 	productController.Route(app)
@@ -95,6 +99,6 @@ func main() {
 	app.Get("/metrics", monitor.New(monitor.Config{Title: "Be Matrics Page"}))
 
 	//start app
-	err := app.Listen(config.GetString("SERVER_PORT"))
+	err = app.Listen(config.GetString("SERVER_PORT"))
 	exception.PanicLogging(err)
 }
