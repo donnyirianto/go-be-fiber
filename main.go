@@ -36,36 +36,39 @@ import (
 // @name Authorization
 // @description Authorization For JWT
 func main() {
-	//setup configuration
+	// setup configuration
 	config := configuration.New()
 	database, err := configuration.NewDatabase(config)
 	exception.PanicLogging(err)
 	redis, err := configuration.NewRedis(config)
 	exception.PanicLogging(err)
 
-	//repository
+	// repository
 	productRepository := repository.NewProductRepositoryImpl(database)
 	transactionRepository := repository.NewTransactionRepositoryImpl(database)
 	transactionDetailRepository := repository.NewTransactionDetailRepositoryImpl(database)
 	userRepository := repository.NewUserRepositoryImpl(database)
 
-	//service
+	// service
 	productService := service.NewProductServiceImpl(&productRepository, redis)
 	transactionService := service.NewTransactionServiceImpl(&transactionRepository)
 	transactionDetailService := service.NewTransactionDetailServiceImpl(&transactionDetailRepository)
 	userService := service.NewUserServiceImpl(&userRepository)
 
-	//controller
+	// controller
 	productController := controller.NewProductController(&productService, config)
 	transactionController := controller.NewTransactionController(&transactionService, config)
 	transactionDetailController := controller.NewTransactionDetailController(&transactionDetailService, config)
 	userController := controller.NewUserController(&userService, config)
 
-	//setup fiber
+	// setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
+
+	// use Gzip compression middleware
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
+
 	app.Use(logger.New(logger.Config{
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
@@ -76,19 +79,20 @@ func main() {
 	// Use the cache middleware
 	app.Use(cache.New(cache.Config{
 		Next: func(c *fiber.Ctx) bool {
-			return c.Query("noCache") == "true"
+			// Check if Gzip is accepted by the client
+			return c.Get("Accept-Encoding") == "gzip" || c.Get("TE") == "gzip;q=0.8, deflate;q=0.6, br;q=0.4"
 		},
-		Expiration:   5 * time.Minute,
+		Expiration:   1 * time.Minute,
 		CacheControl: true,
 	}))
 
-	//routing
+	// routing
 	productController.Route(app)
 	transactionController.Route(app)
 	transactionDetailController.Route(app)
 	userController.Route(app)
 
-	//swagger
+	// swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)
 	app.Get("/", func(c *fiber.Ctx) error {
 		data := map[string]string{"message": "hello!"}
@@ -98,7 +102,7 @@ func main() {
 	// Metrics Page`
 	app.Get("/metrics", monitor.New(monitor.Config{Title: "Be Matrics Page"}))
 
-	//start app
+	// start app
 	err = app.Listen(config.GetString("SERVER_PORT"))
 	exception.PanicLogging(err)
 }

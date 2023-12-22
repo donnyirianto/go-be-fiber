@@ -13,5 +13,6 @@ func NewFiberConfiguration() fiber.Config {
 		ErrorHandler: exception.ErrorHandler,
 		JSONEncoder:  json.Marshal,
 		JSONDecoder:  json.Unmarshal,
+		BodyLimit:    20 * 1024 * 1024,
 	}
 }
